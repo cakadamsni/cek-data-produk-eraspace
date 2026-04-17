@@ -230,7 +230,7 @@ export default function ProductChecker() {
                     <option value="">— Pilih Store —</option>
                     {STORE_LIST.map(store => (
                       <option key={store.id} value={store.store_code}>
-                        {store.store_name} ({store.store_code})
+                        {store.store_name}
                       </option>
                     ))}
                   </select>
