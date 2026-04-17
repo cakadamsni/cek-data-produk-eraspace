@@ -30,7 +30,7 @@ export default function ProductChecker() {
       }
 
       const result = await response.json();
-      setData(result);
+      setData(result.data ?? result);
     } catch (err) {
       setError(err.message || 'Terjadi kesalahan saat mengambil data');
       setData(null);
