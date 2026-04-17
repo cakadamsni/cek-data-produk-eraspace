@@ -1,0 +1,5 @@
+{
+  "name": "cek-data-produk",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist"
+}

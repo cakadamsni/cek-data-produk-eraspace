@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, AlertCircle, CheckCircle, Loader } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, AlertCircle, CheckCircle, Loader, Clock, Calendar, AlertTriangle } from 'lucide-react';
 
 export default function ProductChecker() {
   const [sku, setSku] = useState('');
@@ -50,6 +50,64 @@ export default function ProductChecker() {
     });
   };
 
+  const formatDateDetailed = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    const options = {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    };
+    const dateFormatted = date.toLocaleDateString('id-ID', options);
+    const timeFormatted = date.toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+    return `${dateFormatted} pukul ${timeFormatted}`;
+  };
+
+  const getATCStatus = (startDate, endDate) => {
+    if (!startDate && !endDate) {
+      return { status: 'enabled', label: 'ATC Aktif', color: 'green' };
+    }
+
+    const now = new Date();
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+
+    if (start && now < start) {
+      return { status: 'upcoming', label: 'Akan Disable', color: 'yellow', startDate };
+    }
+
+    if (start && end && now >= start && now <= end) {
+      return { status: 'ongoing', label: 'Sedang Disabled', color: 'red', endDate };
+    }
+
+    if (end && now > end) {
+      return { status: 'ended', label: 'Sudah Diaktifkan Kembali', color: 'green', endDate };
+    }
+
+    return { status: 'ongoing', label: 'Sedang Disabled', color: 'red' };
+  };
+
+  const getDurationText = (startDate, endDate) => {
+    if (!startDate || !endDate) return '-';
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffMs = end - start;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays > 0) {
+      return `${diffDays} hari ${diffHours % 24} jam`;
+    }
+    return `${diffHours} jam ${diffMinutes} menit`;
+  };
+
   const StatusBadge = ({ label, value }) => {
     const isActive = value === true;
     const bgColor = isActive ? 'bg-blue-100' : 'bg-gray-100';
@@ -58,6 +116,82 @@ export default function ProductChecker() {
     return (
       <div className={`px-3 py-1 rounded-full text-sm font-medium ${bgColor} ${textColor}`}>
         {label}: {isActive ? '✓ Aktif' : '✗ Tidak'}
+      </div>
+    );
+  };
+
+  const ATCScheduleCard = ({ atcDisabledStart, atcDisabledEnd }) => {
+    const atcStatus = getATCStatus(atcDisabledStart, atcDisabledEnd);
+    const duration = getDurationText(atcDisabledStart, atcDisabledEnd);
+
+    const statusColors = {
+      enabled: { bg: 'bg-green-50', border: 'border-green-300', text: 'text-green-700', icon: 'text-green-600' },
+      upcoming: { bg: 'bg-yellow-50', border: 'border-yellow-300', text: 'text-yellow-700', icon: 'text-yellow-600' },
+      ongoing: { bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', icon: 'text-red-600' },
+      ended: { bg: 'bg-green-50', border: 'border-green-300', text: 'text-green-700', icon: 'text-green-600' }
+    };
+
+    const colors = statusColors[atcStatus.status];
+
+    return (
+      <div className={`${colors.bg} border-2 ${colors.border} rounded-xl p-6`}>
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className={`w-6 h-6 ${colors.icon} flex-shrink-0 mt-1`} />
+            <div>
+              <h3 className={`text-lg font-bold ${colors.text}`}>{atcStatus.label}</h3>
+              <p className="text-sm text-slate-600 mt-1">Add to Cart Schedule</p>
+            </div>
+          </div>
+          <div className={`px-3 py-1 rounded-full text-sm font-semibold ${colors.bg} border ${colors.border} ${colors.text}`}>
+            {atcStatus.status === 'enabled' && '✓ Aktif'}
+            {atcStatus.status === 'upcoming' && '⏱ Akan Disable'}
+            {atcStatus.status === 'ongoing' && '⛔ Disabled'}
+            {atcStatus.status === 'ended' && '✓ Aktif Kembali'}
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {atcDisabledStart && (
+            <div className="flex items-center gap-3 p-3 bg-white bg-opacity-60 rounded-lg">
+              <Calendar className="w-5 h-5 text-slate-500 flex-shrink-0" />
+              <div>
+                <p className="text-xs font-semibold text-slate-600 uppercase">Mulai Disabled</p>
+                <p className="text-sm font-semibold text-slate-900">{formatDateDetailed(atcDisabledStart)}</p>
+              </div>
+            </div>
+          )}
+
+          {atcDisabledEnd && (
+            <div className="flex items-center gap-3 p-3 bg-white bg-opacity-60 rounded-lg">
+              <Calendar className="w-5 h-5 text-slate-500 flex-shrink-0" />
+              <div>
+                <p className="text-xs font-semibold text-slate-600 uppercase">Selesai Disabled</p>
+                <p className="text-sm font-semibold text-slate-900">{formatDateDetailed(atcDisabledEnd)}</p>
+              </div>
+            </div>
+          )}
+
+          {atcDisabledStart && atcDisabledEnd && (
+            <div className="flex items-center gap-3 p-3 bg-white bg-opacity-60 rounded-lg">
+              <Clock className="w-5 h-5 text-slate-500 flex-shrink-0" />
+              <div>
+                <p className="text-xs font-semibold text-slate-600 uppercase">Durasi Disable</p>
+                <p className="text-sm font-semibold text-slate-900">{duration}</p>
+              </div>
+            </div>
+          )}
+
+          {!atcDisabledStart && !atcDisabledEnd && (
+            <div className="flex items-center gap-3 p-3 bg-white bg-opacity-60 rounded-lg">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+              <div>
+                <p className="text-xs font-semibold text-slate-600 uppercase">Status</p>
+                <p className="text-sm font-semibold text-slate-900">Tidak ada jadwal disable untuk ATC</p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     );
   };
@@ -162,13 +296,6 @@ export default function ProductChecker() {
               <div className="flex flex-wrap gap-3">
                 <StatusBadge label="Preorder" value={data.is_preorder} />
                 <StatusBadge label="New Custom" value={data.is_new_custom} />
-                <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  data.atc_disabled_start || data.atc_disabled_end
-                    ? 'bg-yellow-100 text-yellow-700'
-                    : 'bg-green-100 text-green-700'
-                }`}>
-                  ATC: {data.atc_disabled_start || data.atc_disabled_end ? '⚠ Disabled' : '✓ Aktif'}
-                </div>
               </div>
             </div>
 
@@ -176,56 +303,59 @@ export default function ProductChecker() {
             <div className="px-8 py-6 space-y-6">
               <div>
                 <h3 className="text-sm font-semibold text-slate-700 mb-4 uppercase tracking-wide">
-                  Detail Produk
+                  Jadwal Add to Cart (ATC)
+                </h3>
+                <ATCScheduleCard
+                  atcDisabledStart={data.atc_disabled_start}
+                  atcDisabledEnd={data.atc_disabled_end}
+                />
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 mb-4 uppercase tracking-wide">
+                  Detail Produk Lainnya
                 </h3>
                 <div className="space-y-4">
-                  {/* ATC Status */}
-                  <div className="flex justify-between items-start p-3 bg-slate-50 rounded-lg">
-                    <div>
-                      <p className="text-sm font-medium text-slate-700">Add to Cart Status</p>
-                      <p className="text-xs text-slate-500 mt-1">Cek kapan ATC diaktifkan/dinonaktifkan</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-slate-900">
-                        {data.atc_disabled_start || data.atc_disabled_end ? '⚠ Disabled' : '✓ Enabled'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {data.atc_disabled_start && (
-                    <div className="flex justify-between items-start p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                      <p className="text-sm font-medium text-slate-700">ATC Disabled Start</p>
-                      <p className="text-sm text-slate-900 font-semibold">{formatDate(data.atc_disabled_start)}</p>
-                    </div>
-                  )}
-
-                  {data.atc_disabled_end && (
-                    <div className="flex justify-between items-start p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                      <p className="text-sm font-medium text-slate-700">ATC Disabled End</p>
-                      <p className="text-sm text-slate-900 font-semibold">{formatDate(data.atc_disabled_end)}</p>
-                    </div>
-                  )}
 
                   {/* Preorder Info */}
                   {data.is_preorder && (
                     <>
-                      <div className="flex justify-between items-start p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <p className="text-sm font-medium text-slate-700">Preorder Start</p>
-                        <p className="text-sm text-slate-900 font-semibold">{formatDate(data.preorder_start)}</p>
+                      <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <Calendar className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-xs font-semibold text-blue-600 uppercase">Mulai Preorder</p>
+                          <p className="text-sm font-semibold text-slate-900">{formatDateDetailed(data.preorder_start)}</p>
+                        </div>
                       </div>
 
-                      <div className="flex justify-between items-start p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <p className="text-sm font-medium text-slate-700">Preorder End</p>
-                        <p className="text-sm text-slate-900 font-semibold">{formatDate(data.preorder_end)}</p>
+                      <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <Calendar className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-xs font-semibold text-blue-600 uppercase">Selesai Preorder</p>
+                          <p className="text-sm font-semibold text-slate-900">{formatDateDetailed(data.preorder_end)}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <Clock className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-xs font-semibold text-blue-600 uppercase">Durasi Preorder</p>
+                          <p className="text-sm font-semibold text-slate-900">{getDurationText(data.preorder_start, data.preorder_end)}</p>
+                        </div>
                       </div>
 
                       {data.preorder_store && data.preorder_store.length > 0 && (
-                        <div className="flex justify-between items-start p-3 bg-blue-50 rounded-lg border border-blue-200">
-                          <p className="text-sm font-medium text-slate-700">Preorder Store</p>
-                          <div className="text-right">
-                            {data.preorder_store.map((store, idx) => (
-                              <p key={idx} className="text-sm text-slate-900 font-semibold">{store}</p>
-                            ))}
+                        <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-xs font-semibold text-blue-600 uppercase">Store Preorder</p>
+                            <div className="mt-2 space-y-1">
+                              {data.preorder_store.map((store, idx) => (
+                                <span key={idx} className="inline-block bg-blue-200 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full mr-2">
+                                  {store}
+                                </span>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       )}
