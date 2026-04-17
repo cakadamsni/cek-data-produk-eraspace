@@ -2,20 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { Search, AlertCircle, CheckCircle, Loader, Clock, Calendar, AlertTriangle, ChevronDown } from 'lucide-react';
 
 const STORE_LIST = [
-  { id: 24, company: "EAL", store_type: "ecommerce",   store_code: "jdsport",          store_name: "JD Sport"          },
-  { id: 21, company: "EAR", store_type: "ecommerce",   store_code: "eraspace-kredivo",  store_name: "Eraspace Kredivo"  },
-  { id: 19, company: "EDC", store_type: "Marketplace", store_code: "mp-edc",            store_name: "Marketplace"       },
-  { id: 18, company: "EAL", store_type: "Ecommerce",   store_code: "under-armour",      store_name: "Under Armour"      },
-  { id: 17, company: "EAR", store_type: "Ecom",        store_code: "erafone",           store_name: "Erafone"           },
-  { id: 16, company: "EAR", store_type: "Ecommerce",   store_code: "eraspace-livin",    store_name: "Eraspace Livin"    },
-  { id: 14, company: "DCM", store_type: "Ecommerce",   store_code: "ibox-ent",          store_name: "iBox Enterprise"   },
-  { id: 13, company: "DCM", store_type: "ecommerce",   store_code: "ibox-edu",          store_name: "iBox Education"    },
+  // --- Urutan utama ---
   { id: 12, company: "DCM", store_type: "ecommerce",   store_code: "ibox",              store_name: "iBox"              },
+  { id:  1, company: "EAR", store_type: "ecommerce",   store_code: "eraspace",          store_name: "Eraspace"          },
+  { id: 17, company: "EAR", store_type: "Ecom",        store_code: "erafone",           store_name: "Erafone"           },
+  { id: 18, company: "EAL", store_type: "Ecommerce",   store_code: "under-armour",      store_name: "Under Armour"      },
+  { id: 16, company: "EAR", store_type: "Ecommerce",   store_code: "eraspace-livin",    store_name: "Eraspace Livin"    },
+  { id:  2, company: "ENT", store_type: "ecommerce",   store_code: "en",                store_name: "Enterprise"        },
+  { id: 13, company: "DCM", store_type: "ecommerce",   store_code: "ibox-edu",          store_name: "iBox Education"    },
+  { id: 21, company: "EAR", store_type: "ecommerce",   store_code: "eraspace-kredivo",  store_name: "Eraspace Kredivo"  },
+  // --- Lainnya ---
+  { id: 14, company: "DCM", store_type: "Ecommerce",   store_code: "ibox-ent",          store_name: "iBox Enterprise"   },
   { id: 11, company: "MII", store_type: "ecommerce",   store_code: "it",                store_name: "Live IT"           },
+  { id: 19, company: "EDC", store_type: "Marketplace", store_code: "mp-edc",            store_name: "Marketplace"       },
+  { id: 24, company: "EAL", store_type: "ecommerce",   store_code: "jdsport",           store_name: "JD Sport"          },
   { id: 10, company: "DCM", store_type: "ecommerce",   store_code: "ibox-old",          store_name: "Ibox-Old"          },
   { id:  9, company: "TEST",store_type: "testing",     store_code: "storetesting",      store_name: "Store Testing"     },
-  { id:  2, company: "ENT", store_type: "ecommerce",   store_code: "en",                store_name: "Enterprise"        },
-  { id:  1, company: "EAR", store_type: "ecommerce",   store_code: "eraspace",          store_name: "Eraspace"          },
 ];
 
 export default function ProductChecker() {
